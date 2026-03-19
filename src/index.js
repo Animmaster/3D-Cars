@@ -1,0 +1,263 @@
+import './style.css'
+import { createRoot } from 'react-dom/client'
+import React, { useRef, useState, Suspense } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { DoubleSide, MeshStandardMaterial } from 'three'
+import {
+	OrbitControls,
+	Environment,
+	Lightformer,
+	ContactShadows,
+	Stats,
+	Text,
+	PivotControls,
+} from '@react-three/drei'
+import { Model } from './models'
+import { Effects } from './effects'
+
+function Box(props) {
+	// This reference will give us direct access to the mesh
+	const mesh = useRef()
+	// Subscribe this component to the render-loop, rotate the mesh every frame
+	useFrame((state, delta) => (mesh.current.rotation.y += 0.01))
+	// Return view, these are regular three.js elements expressed in JSX
+	return (
+		<mesh ref={mesh} scale={1} {...props}>
+			<ringGeometry args={[0.9, 1, 4, 1]} />
+			<meshStandardMaterial color='white' roughness={0.75} side={DoubleSide} />
+		</mesh>
+	)
+}
+
+function Select(props) {
+	return (
+		<div className='content'>
+			<p>Choose a model:</p>
+			<select value={props.value} onChange={props.onChange}>
+				<option value='ferrari'>Ferarri SF90 Stradale</option>
+				<option value='lambo1'>Lambo Huracane</option>
+				<option value='lambo2'>Lambo SVJ</option>
+				<option value='lambo3'>Lambo Gallardo</option>
+				<option value='bmw1'>BMW M3</option>
+				<option value='bmw2'>BMW M4</option>
+				<option value='bmw3'>BMW I8</option>
+				<option value='bmw4'>BMW Legend</option>
+				<option value='porshe'>Porshe Taycan</option>
+				<option value='nissan'>Nissan</option>
+			</select>
+		</div>
+	)
+}
+
+function App(props) {
+	const [model, setModel] = useState('ferrari')
+
+	const map = {
+		ferrari: {
+			url: '/ferrari_2021.glb',
+			scale: 180,
+			position: [0, -1, 0],
+		},
+		lambo1: {
+			url: '/lambo-1.glb',
+			scale: 180,
+			position: [0, -1, 0],
+		},
+		lambo2: {
+			url: '/lambo-2.glb',
+			scale: 180,
+			position: [0, -1, 0],
+		},
+		lambo3: {
+			url: '/lambo-3.glb',
+			scale: 0.4,
+			position: [0, -1, 0],
+		},
+		bmw1: {
+			url: '/bmw-1.glb',
+			scale: 1.3,
+			position: [0, -1, 0],
+		},
+		bmw2: {
+			url: '/bmw-2.glb',
+			scale: 1.8,
+			position: [0, -1, 0],
+		},
+		bmw3: {
+			url: '/bmw-3.glb',
+			scale: 180,
+			position: [0, -1, 0],
+		},
+		bmw4: {
+			url: '/bmw-4.glb',
+			scale: 1.5,
+			position: [0, -0.5, 0],
+		},
+		porshe: {
+			url: '/porshe.glb',
+			scale: 0.002,
+			position: [0, -1, 0],
+		},
+		nissan: {
+			url: '/nissan.glb',
+			scale: 170,
+			position: [0, -1, 0],
+		},
+	}
+
+	return (
+		<>
+			<Select
+				value={model}
+				onChange={e => {
+					setModel(e.target.value)
+				}}
+			/>
+			{/* WebGl scene */}
+			<Canvas
+				gl={{ logarithmicDepthBuffer: true, antialias: false }}
+				dpr={[1, 1.5]}
+				camera={{ position: [0, 5, 10] }}
+			>
+				<Stats />
+				<color attach='background' args={['#15151a']} />
+				<hemisphereLight intensity={0.5} />
+				<Box position={[6, 2, 2]} />
+				<Box position={[6, 4, 3]} />
+				<Box position={[6, 6, 4]} />
+				<Box position={[-6, 2, -2]} />
+				<Box position={[-6, 4, -3]} />
+				<Box position={[-6, 6, -4]} />
+
+				<mesh
+					scale={4}
+					position={[3, -1.161, -1.5]}
+					rotation={[-Math.PI / 2, 0, Math.PI / 2.5]}
+				>
+					<ringGeometry args={[0.9, 1, 4, 1]} />
+					<meshStandardMaterial color='white' roughness={0.75} />
+				</mesh>
+				<mesh
+					scale={4}
+					position={[-3, -1.161, -1]}
+					rotation={[-Math.PI / 2, 0, Math.PI / 2.5]}
+				>
+					<ringGeometry args={[0.9, 1, 3, 1]} />
+					<meshStandardMaterial color='white' roughness={0.75} />
+				</mesh>
+
+				<Suspense
+					fallback={
+						<Text
+							scale={[10, 10, 10]}
+							color='white'
+							anchorX='center'
+							anchorY='middle'
+						>
+							Loading...
+							<meshNormalMaterial />
+						</Text>
+					}
+				>
+					<Model
+						url={map[model].url}
+						position={map[model].position}
+						scale={map[model].scale}
+						rotation={map[model].rotation}
+					/>
+				</Suspense>
+
+				<ContactShadows
+					resolution={1024}
+					position={[0, -1.16, 0]}
+					scale={20}
+					blur={0.5}
+					opacity={1}
+					far={20}
+				/>
+				<Environment resolution={512}>
+					{/* Ceiling */}
+					<Lightformer
+						intensity={2}
+						rotation-x={Math.PI / 2}
+						position={[0, 4, -9]}
+						scale={[10, 1, 1]}
+					/>
+					<Lightformer
+						intensity={2}
+						rotation-x={Math.PI / 2}
+						position={[0, 4, -6]}
+						scale={[10, 1, 1]}
+					/>
+					<Lightformer
+						intensity={2}
+						rotation-x={Math.PI / 2}
+						position={[0, 4, -3]}
+						scale={[10, 1, 1]}
+					/>
+					<Lightformer
+						intensity={2}
+						rotation-x={Math.PI / 2}
+						position={[0, 4, 0]}
+						scale={[10, 1, 1]}
+					/>
+					<Lightformer
+						intensity={2}
+						rotation-x={Math.PI / 2}
+						position={[0, 4, 3]}
+						scale={[10, 1, 1]}
+					/>
+					<Lightformer
+						intensity={2}
+						rotation-x={Math.PI / 2}
+						position={[0, 4, 6]}
+						scale={[10, 1, 1]}
+					/>
+					<Lightformer
+						intensity={2}
+						rotation-x={Math.PI / 2}
+						position={[0, 4, 9]}
+						scale={[10, 1, 1]}
+					/>
+					{/* Sides */}
+					<Lightformer
+						intensity={2}
+						rotation-y={Math.PI / 2}
+						position={[-50, 2, 0]}
+						scale={[100, 2, 1]}
+					/>
+					<Lightformer
+						intensity={2}
+						rotation-y={-Math.PI / 2}
+						position={[50, 2, 0]}
+						scale={[100, 2, 1]}
+					/>
+					{/* Key */}
+					<Lightformer
+						form='ring'
+						color='red'
+						intensity={10}
+						scale={2}
+						position={[10, 5, 10]}
+						onUpdate={self => self.lookAt(0, 0, 0)}
+					/>
+				</Environment>
+				<Effects />
+				<OrbitControls
+					minPolarAngle={Math.PI / 2.2}
+					maxPolarAngle={Math.PI / 2.2}
+				/>
+			</Canvas>
+		</>
+	)
+}
+
+createRoot(document.getElementById('root')).render(
+	<Suspense
+		fallback={
+			<div>Loading heavy texture, pls wait a little bit... ٩(◕‿◕｡)۶</div>
+		}
+	>
+		<App></App>
+	</Suspense>,
+)
