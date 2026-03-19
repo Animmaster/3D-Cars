@@ -1,4 +1,4 @@
-# 3D-Cars - Watch [DEMO](https://leonid-yakovlev-car-preview.netlify.app/)
+# 3D-Cars 
 
 - [Watch DEMO](https://leonid-yakovlev-car-preview.netlify.app/)
 
